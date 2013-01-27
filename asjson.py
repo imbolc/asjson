@@ -44,7 +44,7 @@ except ImportError:
     except ImportError:
         import simplejson
 
-__version__ = '1.0'
+__version__ = '1.1'
 
 DATE_RE = re.compile(r'^(\d{4})-(\d{2})-(\d{2})Z$')
 DATETIME_RE = re.compile(

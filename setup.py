@@ -2,9 +2,6 @@
 import os
 import sys
 import doctest
-if sys.version_info >= (3, 0):
-    from distribute_setup import use_setuptools
-    use_setuptools()
 try:
 	from setuptools import setup
 except ImportError:
