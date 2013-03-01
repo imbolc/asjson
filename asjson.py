@@ -44,17 +44,18 @@ except ImportError:
     except ImportError:
         import simplejson
 
-__version__ = '1.1'
+__version__ = '1.2'
 
 DATE_RE = re.compile(r'^(\d{4})-(\d{2})-(\d{2})Z$')
 DATETIME_RE = re.compile(
     r'^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,6}))?Z$')
+DEBUG = False
 
 if sys.version_info >= (3, 0):
     basestring = str
 
 def dumps(obj, debug=False, **kwargs):
-    if debug:
+    if debug or DEBUG:
         kwargs['indent'] = kwargs.get('indent', 2)
         kwargs['sort_keys'] = kwargs.get('sort_keys', True)
         kwargs['ensure_ascii'] = kwargs.get('ensure_ascii', False)
