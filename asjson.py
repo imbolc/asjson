@@ -44,7 +44,7 @@ except ImportError:
     except ImportError:
         import simplejson
 
-__version__ = '1.2'
+__version__ = '1.2.1'
 
 DATE_RE = re.compile(r'^(\d{4})-(\d{2})-(\d{2})Z$')
 DATETIME_RE = re.compile(
@@ -105,7 +105,8 @@ def decode_datetime(obj, opts):
         dt_result = DATETIME_RE.match(obj)
         if dt_result:
             try:
-                return datetime.datetime(*map(int, dt_result.groups()))
+                return datetime.datetime(*map(lambda x: int(x) if x else 0,
+                    dt_result.groups()))
             except Exception:
                 pass
     if opts.get('parse_date'):
