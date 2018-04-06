@@ -3,53 +3,91 @@ asjson
 ======
 json.dumps with datetime, date and bson.ObjectId support
 
-    >>> from datetime import datetime, date
+    >>> from datetime import datetime, date, timedelta, timezone
+    >>> from decimal import Decimal
+    >>> from bson import ObjectId
     >>> import asjson
-    >>> import bson
 
-    >>> asjson.dumps([datetime(2013, 1, 27, 6, 48, 0, 38835),
-    ...               bson.ObjectId('aaaaaaaaaaaaaaaaaaaaaaaa')])
-    '["2013-01-27T06:48:00.038835", "aaaaaaaaaaaaaaaaaaaaaaaa"]'
+    >>> data = {
+    ...     'time': [
+    ...         date(2018, 3, 6),
+    ...         datetime(2018, 3, 6, 9, 38, 0, 1),
+    ...         datetime(2018, 3, 6, 9, 38, 0, 1).replace(
+    ...             tzinfo=timezone.utc),
+    ...     ],
+    ...     'decimal': Decimal('3.14'),
+    ...     'objectid': ObjectId('a' * 24),
+    ... }
 
+We can make all the values json-appropriate without
+dumping the structure to string.
+It can be helpful in some cases, e.g. with passing it
+into database json field.
 
+    >>> asjson.encode(data)
+    {'time': ['2018-03-06',
+             '2018-03-06T09:38:00.000001',
+             '2018-03-06T09:38:00.000001+00:00'],
+         'decimal': '3.14',
+         'objectid': 'aaaaaaaaaaaaaaaaaaaaaaaa'}
 
-Debug mode
-----------
-Shortcut for json.dumps(obj, indent=4, sort_keys=True, ensure_ascii=False)
+For dumping to string we can use `asjson.dumps` which takes
+the same parameters as standard `json.dumps` does plus `debug`
+which just a shortcut for
+`json.dumps(..., indent=4, sort_keys=True, ensure_askii=False)`:
 
-    >>> asjson.dumps({'foo': 1, 'bar': 2}, debug=True)
-    '{\\n    "bar": 2,\\n    "foo": 1\\n}'
+    >>> print(asjson.dumps(data, debug=True))
+    {
+        "decimal": "3.14",
+        "objectid": "aaaaaaaaaaaaaaaaaaaaaaaa",
+        "time": [
+            "2018-03-06",
+            "2018-03-06T09:38:00.000001",
+            "2018-03-06T09:38:00.000001+00:00"
+        ]
+    }
+
 '''
-import json
 from datetime import datetime, date
+from decimal import Decimal
+import json
 try:
     from bson import ObjectId
 except ImportError:
     ObjectId = None
 
 
-__version__ = '2.0.0'
+DEBUG = False
 
 
-class JSONEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, datetime):
-            return obj.isoformat()
-        if isinstance(obj, date):
-            return obj.isoformat()
-        if ObjectId and isinstance(obj, ObjectId):
-            return str(obj)
-        return super().default(obj)
+__version__ = '3.0.0'
 
 
-def dumps(data, debug=False, **kwargs):
+def encode(data):
+    '''Recursive encodes nested structures to json-appropriate format'''
+    if isinstance(data, dict):
+        return {k: encode(v) for k, v in data.items()}
+    if isinstance(data, list):
+        return [encode(v) for v in data]
+    if isinstance(data, datetime):
+        return data.isoformat()
+    if isinstance(data, date):
+        return data.isoformat()
+    if isinstance(data, Decimal):
+        return str(data)
+    if ObjectId and isinstance(data, ObjectId):
+        return str(data)
+    return data
+
+
+def dumps(data, *, debug=DEBUG, **kwargs):
     if debug:
         kwargs['indent'] = kwargs.get('indent', 4)
         kwargs['sort_keys'] = kwargs.get('sort_keys', True)
         kwargs['ensure_ascii'] = kwargs.get('ensure_ascii', False)
-    return JSONEncoder(**kwargs).encode(data)
+    return json.dumps(encode(data), **kwargs)
 
 
 if __name__ == "__main__":
     import doctest
-    doctest.testmod(verbose=True)
+    doctest.testmod(optionflags=doctest.NORMALIZE_WHITESPACE)
