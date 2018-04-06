@@ -10,6 +10,7 @@ import asjson as mod
 DOC = mod.__doc__.strip()
 NAME = mod.__name__
 VERSION = mod.__version__
+DESC = DOC.split('===\n')[1].strip().split('\n\n')[0].replace('\n', ' ')
 
 open('README.md', 'w').write(DOC)
 if sys.argv[-1] == 'publish':
@@ -22,7 +23,7 @@ setup(
     name=NAME,
     url='https://github.com/imbolc/{}'.format(NAME),
     version=VERSION,
-    description=DOC.split('===\n')[1].strip().split('\n\n')[0],
+    description=DESC,
     long_description=DOC,
 
     py_modules=[NAME],

@@ -1,7 +1,8 @@
 '''
 asjson
 ======
-json.dumps with datetime, date and bson.ObjectId support
+Json serialization with `datetime`, `date`,
+`Decimal` and `bson.ObjectId` support
 
     >>> from datetime import datetime, date, timedelta, timezone
     >>> from decimal import Decimal
